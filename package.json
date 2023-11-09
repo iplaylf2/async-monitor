@@ -1,6 +1,6 @@
 {
   "name": "async-monitor",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Provides a mechanism that synchronizes access to objects.",
   "keywords": [
     "lock",
