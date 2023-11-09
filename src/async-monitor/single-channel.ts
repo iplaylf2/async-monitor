@@ -1,5 +1,5 @@
 import { Lock } from "./lock";
-import { nextTick } from "process";
+import { nextTick } from "../utility/timer";
 
 export class SingleChannel<T> {
   public constructor(
@@ -19,9 +19,7 @@ export class SingleChannel<T> {
     this.assertClosed();
 
     if (0 < this.acquireCount) {
-      await new Promise((resolve) => {
-        nextTick(resolve);
-      });
+      await nextTick();
     }
 
     let leave!: () => void;

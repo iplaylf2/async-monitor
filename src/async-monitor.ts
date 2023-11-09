@@ -7,18 +7,22 @@ import {
 /**
  * Acquires an exclusive lock on the specified key.
  */
-export async function enter(key: MapKey): Promise<CriticalSection> {
-  return await CriticalSectionRoot.enter(key);
+export async function enter<T>(
+  key: MapKey,
+  scope: (criticalSection: CriticalSection) => Promise<T> | T,
+): Promise<T> {
+  return await CriticalSectionRoot.enter(key, scope);
 }
 
 /**
  * Attempts, for the specified amount of time, to acquire an exclusive lock on the specified key.
  */
-export async function tryEnter(
+export async function tryEnter<T>(
   key: MapKey,
   timeout: number,
-): Promise<CriticalSection | null> {
-  return await CriticalSectionRoot.tryEnter(key, timeout);
+  scope: (criticalSection: CriticalSection | null) => Promise<T> | T,
+): Promise<T> {
+  return await CriticalSectionRoot.tryEnter(key, timeout, scope);
 }
 
 export function tryGet(key: MapKey): CriticalSection | null {

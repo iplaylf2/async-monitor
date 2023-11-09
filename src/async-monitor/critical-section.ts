@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AsyncLocalStorage } from "async_hooks";
 import { type MapKey } from "../type/map";
 import { Monitor } from "./monitor";
@@ -12,8 +13,8 @@ import {
 export class InnerCriticalSection implements Disposable {
   private constructor(
     monitor: Monitor,
-    private readonly parent: InnerCriticalSection,
-    private readonly root: CriticalSectionRoot,
+    public readonly parent: InnerCriticalSection,
+    public readonly root: CriticalSectionRoot,
   ) {
     this.monitorChannel = new SingleChannel(true, monitor);
   }
@@ -146,6 +147,8 @@ export class InnerCriticalSection implements Disposable {
 
     const [ok, monitor] = this.monitorChannel.getValue();
     if (ok) {
+      void this.monitorChannel.acquire();
+
       this.releaseMonitor(monitor);
 
       const hasPulse = await monitor.wait(
@@ -155,9 +158,15 @@ export class InnerCriticalSection implements Disposable {
 
       const abortController = new AbortController();
 
-      await this.acquireMonitor(abortController.signal).finally(() => {
-        abortController.abort();
-      });
+      {
+        const monitor = await this.acquireMonitor(
+          abortController.signal,
+        ).finally(() => {
+          abortController.abort();
+        });
+
+        this.monitorChannel.setValue(monitor);
+      }
 
       return hasPulse;
     } else {
@@ -184,8 +193,11 @@ export class CriticalSectionRoot {
     this.top = InnerCriticalSection.create(new Monitor(), this);
   }
 
-  public static async enter(key: MapKey): Promise<CriticalSection> {
-    return (await this.tryEnter(key, Infinity))!;
+  public static async enter<T>(
+    key: MapKey,
+    scope: (criticalSection: CriticalSection) => Promise<T> | T,
+  ): Promise<T> {
+    return await this.tryEnter(key, Infinity, scope as never);
   }
 
   public exit(exit: () => InnerCriticalSection) {
@@ -200,10 +212,45 @@ export class CriticalSectionRoot {
     }
   }
 
-  public static async tryEnter(
+  public static async tryEnter<T>(
     key: MapKey,
     timeout: number,
-  ): Promise<CriticalSection | null> {
+    scope: (criticalSection: CriticalSection | null) => Promise<T> | T,
+  ): Promise<T> {
+    const criticalSection = await this.tryEnterWithoutScope(key, timeout);
+    if (criticalSection) {
+      return await criticalSection.root.localStorage.run(
+        { current: criticalSection },
+        async () => {
+          using _ = criticalSection;
+          return await scope(criticalSection);
+        },
+      );
+    } else {
+      return await scope(null);
+    }
+  }
+
+  public async tryEnter(
+    enter: () => Promise<InnerCriticalSection>,
+  ): Promise<InnerCriticalSection> {
+    this.referenceCount++;
+
+    const criticalSection = await enter().catch((e) => {
+      this.referenceCount--;
+
+      throw e;
+    });
+
+    // this.localStorage.enterWith({ current: criticalSection });
+
+    return criticalSection;
+  }
+
+  private static async tryEnterWithoutScope(
+    key: MapKey,
+    timeout: number,
+  ): Promise<InnerCriticalSection | null> {
     const criticalSectionRoot = this.map.get(key);
     if (criticalSectionRoot) {
       const parent = criticalSectionRoot.current;
@@ -240,22 +287,6 @@ export class CriticalSectionRoot {
 
       return criticalSection;
     }
-  }
-
-  public async tryEnter(
-    enter: () => Promise<InnerCriticalSection>,
-  ): Promise<InnerCriticalSection> {
-    this.referenceCount++;
-
-    const criticalSection = await enter().catch((e) => {
-      this.referenceCount--;
-
-      throw e;
-    });
-
-    this.localStorage.enterWith({ current: criticalSection });
-
-    return criticalSection;
   }
 
   public static tryGet(key: MapKey): CriticalSection | null {
