@@ -1,0 +1,49 @@
+{
+  "name": "async-monitor",
+  "version": "0.0.1",
+  "description": "Provides a mechanism that synchronizes access to objects.",
+  "keywords": [
+    "lock",
+    "reentrant",
+    "typescript"
+  ],
+  "homepage": "https://github.com/iplaylf2/async-monitor#readme",
+  "bugs": {
+    "url": "https://github.com/iplaylf2/async-monitor/issues"
+  },
+  "license": "BSD-3-Clause",
+  "author": "i-play-lf2",
+  "main": "async-monitor.js",
+  "types": "async-monitor.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iplaylf2/async-monitor.git"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "publish-npm": "build && npm publish ./dist"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^2.1.3",
+    "@eslint/js": "^8.53.0",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/node": "^20.8.10",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-standard-with-typescript": "^39.1.1",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-n": "^16.3.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "^3.0.3",
+    "rollup": "^4.3.0",
+    "rollup-plugin-clear": "^2.0.7",
+    "rollup-plugin-copy": "^3.5.0",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

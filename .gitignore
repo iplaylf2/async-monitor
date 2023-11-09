@@ -1,0 +1,4 @@
+.pnpm-store
+/debug
+/dist
+node_modules
