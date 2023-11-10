@@ -51,9 +51,7 @@ export class InnerCriticalSection implements Disposable {
     monitor: M,
     root: CriticalSectionRoot,
   ): InnerCriticalSection {
-    const section = new InnerCriticalSection(monitor, null!, root);
-
-    return section;
+    return new InnerCriticalSection(monitor, null!, root);
   }
 
   public pulse(): void {
@@ -120,7 +118,7 @@ export class InnerCriticalSection implements Disposable {
     }
 
     for (let cs = this.root.current; this !== cs; cs = cs.parent) {
-      if ((undefined as unknown) === cs || (null as unknown) === cs) {
+      if ((null as unknown) === cs || (undefined as unknown) === cs) {
         throw new MismatchCriticalSectionError();
       }
     }
@@ -128,7 +126,6 @@ export class InnerCriticalSection implements Disposable {
     const [ok, monitor] = this.monitorChannel.getValue();
     if (ok) {
       this.monitorChannel.close();
-
       this.releaseMonitor(monitor);
     } else {
       this.monitorChannel.close(new InterruptedError());
@@ -155,7 +152,6 @@ export class InnerCriticalSection implements Disposable {
         this.exitController.signal,
         readyTimeout,
       );
-
       const abortController = new AbortController();
 
       {
@@ -204,7 +200,6 @@ export class CriticalSectionRoot {
     const parent = exit();
 
     this.localStorage.getStore()!.current = parent;
-
     this.referenceCount--;
 
     if (0 === this.referenceCount) {
@@ -280,18 +275,14 @@ export class CriticalSectionRoot {
       }
     } else {
       const criticalSectionRoot = new CriticalSectionRoot(key);
-
       this.map.set(key, criticalSectionRoot);
 
-      const criticalSection = await criticalSectionRoot.top.reenter();
-
-      return criticalSection;
+      return await criticalSectionRoot.top.reenter();
     }
   }
 
   public static tryGet(key: MapKey): CriticalSection | null {
     const criticalSectionRoot = this.map.get(key);
-
     if (criticalSectionRoot) {
       const criticalSection = criticalSectionRoot.current;
       if (criticalSection.hasMonitor) {
@@ -321,15 +312,15 @@ export class CriticalSectionRoot {
 
 export interface CriticalSection extends Disposable {
   /**
-   * Notifies a task in the waiting queue of a change in the locked key's state.
+   * Notifies a CriticalSection in the waiting queue of a change in the locked key's state.
    */
   pulse: () => void;
   /**
-   * Notifies all waiting tasks of a change in the key's state.
+   * Notifies all waiting CriticalSections of a change in the key's state.
    */
   pulseAll: () => void;
   /**
-   * Releases the lock on an key and blocks the current task until it reacquires the lock. If the specified time-out interval elapses, the task enters the ready queue.
+   * Releases the lock on an key and blocks the current CriticalSection until it reacquires the lock. If the specified time-out interval elapses, the CriticalSection enters the ready queue.
    */
   wait: (readyTimeout?: number) => Promise<boolean>;
 }

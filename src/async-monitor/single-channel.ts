@@ -98,10 +98,8 @@ export class SingleChannel<T> {
       throw new ExistValueError();
     } else {
       this.value = value;
-
-      this.hasValue = true;
-
       this.lock.unlock();
+      this.hasValue = true;
     }
   }
 

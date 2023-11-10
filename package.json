@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "publish-npm": "build && npm publish ./dist"
+    "publish-npm": "pnpm run build && npm publish ./dist"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^2.1.3",
