@@ -1,3 +1,11 @@
+# async-monitor
+
+`async-monitor` is a nodejs library that provides a simple way to synchronize access to shared objects in asynchronous code blocks.
+
+It is inspired by the [Monitor](https://learn.microsoft.com/en-us/dotnet/api/system.threading.monitor) class in .NET, which allows multiple threads to acquire and release exclusive locks on resources.
+
+Since async-monitor uses AsyncLocalStorage and Symbol.dispose internally, it can only be used in nodejs 20+ environments.
+
 ## usage
 
 ```typescript
@@ -14,14 +22,13 @@ let foo = 0;
 void (async () => {
   while (true) {
     await enter(233, async (section) => {
-      await delay(1000);
-
       console.log("while 1");
-
-      const value = foo;
 
       section.pulseAll();
       await section.wait();
+
+      const value = foo;
+      await delay(500);
 
       foo = value + 1;
 
@@ -33,18 +40,17 @@ void (async () => {
 void (async () => {
   while (true) {
     await enter(233, async (section) => {
-      await delay(1000);
-
       console.log("while 2");
-
-      const value = foo;
 
       section.pulseAll();
       await section.wait();
 
-      console.log("to reentrance");
+      const value = foo;
+      await delay(500);
+
+      console.log("to reenter");
       await enter(233, () => {
-        console.log("reentrance");
+        console.log("reenter");
       });
 
       foo = value + 1;

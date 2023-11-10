@@ -312,15 +312,15 @@ export class CriticalSectionRoot {
 
 export interface CriticalSection extends Disposable {
   /**
-   * Notifies a task in the waiting queue of a change in the locked key's state.
+   * Notifies a CriticalSection in the waiting queue of a change in the locked key's state.
    */
   pulse: () => void;
   /**
-   * Notifies all waiting tasks of a change in the key's state.
+   * Notifies all waiting CriticalSections of a change in the key's state.
    */
   pulseAll: () => void;
   /**
-   * Releases the lock on an key and blocks the current task until it reacquires the lock. If the specified time-out interval elapses, the task enters the ready queue.
+   * Releases the lock on an key and blocks the current CriticalSection until it reacquires the lock. If the specified time-out interval elapses, the CriticalSection enters the ready queue.
    */
   wait: (readyTimeout?: number) => Promise<boolean>;
 }

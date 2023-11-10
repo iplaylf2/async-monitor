@@ -25,6 +25,9 @@ export async function tryEnter<T>(
   return await CriticalSectionRoot.tryEnter(key, timeout, scope);
 }
 
+/**
+ * Attempts to get the current CriticalSection
+ */
 export function tryGet(key: MapKey): CriticalSection | null {
   return CriticalSectionRoot.tryGet(key);
 }
