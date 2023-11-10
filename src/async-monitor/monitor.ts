@@ -7,7 +7,6 @@ export class Monitor {
     const { done, value: one } = this.waitSet.entries().next();
     if (!(done ?? false)) {
       const [criticalSection, resolve] = one;
-
       this.waitSet.delete(criticalSection);
 
       resolve();
@@ -34,7 +33,6 @@ export class Monitor {
       resolve = _resolve;
       reject = _reject;
     });
-
     const abortListener = () => {
       reject(criticalSection.reason);
     };
@@ -57,12 +55,12 @@ export class Monitor {
           this.waitSet.set(criticalSection, resolve);
 
           return await Promise.race([
-            readyPromise.then(() => {
+            readyPromise.then(() => true),
+            delay(readyTimeout).then(() => {
               this.waitSet.delete(criticalSection);
 
-              return true;
+              return false;
             }),
-            delay(readyTimeout).then(() => false),
           ]);
         }
       }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 export class Lock {
   public constructor(private _isLocked = true) {
     if (_isLocked) {
@@ -9,12 +10,8 @@ export class Lock {
       });
     } else {
       this.block = Promise.resolve();
-      this.unlock = () => {
-        //
-      };
-      this.interrupt = () => {
-        //
-      };
+      this.unlock = () => {};
+      this.interrupt = () => {};
     }
   }
 
